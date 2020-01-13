@@ -12,8 +12,12 @@ build2
 .idea
 src/config/config.json
 packages/@okta/courage-dist/*.html
-packages/@okta/courage-dist/*.map
-/dist
+packages/@okta/courage-dist/*.map/
+/dist/css
+/dist/font
+/dist/img
+/dist/labels
+/dist/sass
 .yalc
 .env
 testenv
