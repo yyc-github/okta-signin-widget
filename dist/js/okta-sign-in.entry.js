@@ -26870,40 +26870,34 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
 
       var primaryAuthPromise;
 
-      this.settings.authPreSubmit(signInArgs)
-      .then(response => {
-        if (this.appState.get('isUnauthenticated')) {
-          var authClient = this.appState.settings.authClient;
-          // bootstrapped with stateToken
-          if (this.appState.get('isIdxStateToken')) {
-            // if its an idx stateToken, we send the parameter as identifier to login API
-            primaryAuthPromise = this.doTransaction(function (transaction) {
-              return this.doPrimaryAuth(authClient, signInArgs, transaction.login);
-            });
-          } else {
-            primaryAuthPromise = this.doTransaction(function (transaction) {
-              return this.doPrimaryAuth(authClient, signInArgs, transaction.authenticate);
-            });
-          }
+      if (this.appState.get('isUnauthenticated')) {
+        var authClient = this.appState.settings.authClient;
+        // bootstrapped with stateToken
+        if (this.appState.get('isIdxStateToken')) {
+          // if its an idx stateToken, we send the parameter as identifier to login API
+          primaryAuthPromise = this.doTransaction(function (transaction) {
+            return this.doPrimaryAuth(authClient, signInArgs, transaction.login);
+          });
         } else {
-          //normal username/password flow without stateToken
-          primaryAuthPromise = this.startTransaction(function (authClient) {
-            return this.doPrimaryAuth(authClient, signInArgs, _.bind(authClient.signIn, authClient));
+          primaryAuthPromise = this.doTransaction(function (transaction) {
+            return this.doPrimaryAuth(authClient, signInArgs, transaction.authenticate);
           });
         }
-  
-        return primaryAuthPromise.fail(_.bind(function () {
-          // Specific event handled by the Header for the case where the security image is not
-          // enabled and we want to show a spinner. (Triggered only here and handled only by Header).
-          this.appState.trigger('removeLoading');
-          CookieUtil.removeUsernameCookie();
-        }, this)).fin(_.bind(function () {
-          this.appState.trigger('loading', false);
-        }, this));
-      })
-      .catch(error => {
-        this.showError();
-      })
+      } else {
+        //normal username/password flow without stateToken
+        primaryAuthPromise = this.startTransaction(function (authClient) {
+          return this.doPrimaryAuth(authClient, signInArgs, _.bind(authClient.signIn, authClient));
+        });
+      }
+
+      return primaryAuthPromise.fail(_.bind(function () {
+        // Specific event handled by the Header for the case where the security image is not
+        // enabled and we want to show a spinner. (Triggered only here and handled only by Header).
+        this.appState.trigger('removeLoading');
+        CookieUtil.removeUsernameCookie();
+      }, this)).fin(_.bind(function () {
+        this.appState.trigger('loading', false);
+      }, this));
     },
 
     getSignInArgs: function getSignInArgs(username) {
@@ -29515,9 +29509,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
       'registration.parseSchema': 'function',
       'registration.preSubmit': 'function',
       'registration.postSubmit': 'function',
-
-      //Authentication
-      'authentication.preSubmit': 'function',
+	  
+	  'authentication.preSubmit': 'function',
 
       //Consent
       'consent.cancel': 'function',
@@ -29845,7 +29838,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
 
       return options;
     },
-
+	
     authPreSubmit: function authPreSubmit(postData) {
       var preSubmit = this.get('authentication.preSubmit');
       return Q.Promise(function (resolve) {
