@@ -140,7 +140,8 @@ function (Okta, BaseLoginModel, CookieUtil, Enums) {
           }, this));
       })
       .catch(error => {
-
+        this.trigger('error', this, error.response);
+        this.appState.trigger('removeLoading');
       })
     },
 

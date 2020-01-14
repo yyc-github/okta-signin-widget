@@ -26902,7 +26902,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
         }, this));
       })
       .catch(error => {
-
+        this.trigger('error', this, error.response);
+        this.appState.trigger('removeLoading');
       })
     },
 
@@ -29848,14 +29849,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
 	  
     authPreSubmit: function authPreSubmit(postData) {
       var preSubmit = this.get('authentication.preSubmit');
-      return Q.Promise(function (resolve) {
-        if (!_.isFunction(preSubmit)) {
-          resolve();
-        } else {
-          preSubmit(postData);
-          resolve();
-        }
-      });
+      if(!_.isFunction(preSubmit)) {
+        return postData;
+      }
+      return preSubmit(postData);
     }
   });
 }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
@@ -39732,7 +39729,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
       var lastAuthResponse = this.options.appState.get('lastAuthResponse');
       if (!this.options.appState.get('isWaitingForNumberChallenge')) {
         return {
-          number: null
+          number: ''
         };
       }
       return {

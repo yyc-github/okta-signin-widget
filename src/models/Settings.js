@@ -156,7 +156,7 @@ function (Okta, Q, Errors, BrowserFeatures, Util, Logger, config) {
       'registration.preSubmit': 'function',
       'registration.postSubmit': 'function',
 
-      //Authentication
+      //Pre primary authentication check - a promise object
       'authentication.preSubmit': 'function',
 
       //Consent
@@ -502,14 +502,10 @@ function (Okta, Q, Errors, BrowserFeatures, Util, Logger, config) {
 
     authPreSubmit: function authPreSubmit(postData) {
       var preSubmit = this.get('authentication.preSubmit');
-      return Q.Promise(function (resolve) {
-        if (!_.isFunction(preSubmit)) {
-          resolve();
-        } else {
-          preSubmit(postData);
-          resolve();
-        }
-      });
+      if(!_.isFunction(preSubmit)) {
+        return postData;
+      }
+      return preSubmit(postData);
     }
   });
 
