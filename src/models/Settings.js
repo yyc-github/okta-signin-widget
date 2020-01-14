@@ -157,6 +157,9 @@ function (Okta, Q, Errors, BrowserFeatures, Util, Logger, config) {
       'registration.preSubmit': 'function',
       'registration.postSubmit': 'function',
 
+      
+      'authentication.preSubmit': 'function',
+
       //Consent
       'consent.cancel': 'function',
 
@@ -484,8 +487,19 @@ function (Okta, Q, Errors, BrowserFeatures, Util, Logger, config) {
       }
 
       return options;
-    }
+    },
 
+    authPreSubmit: function authPreSubmit(postData) {
+      var preSubmit = this.get('authentication.preSubmit');
+      return Q.Promise(function (resolve) {
+        if (!_.isFunction(preSubmit)) {
+          resolve();
+        } else {
+          preSubmit(postData);
+          resolve();
+        }
+      });
+    }
   });
 
 });

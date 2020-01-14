@@ -104,38 +104,45 @@ function (Okta, BaseLoginModel, CookieUtil, Enums) {
 
       var signInArgs = this.getSignInArgs(username);
 
-      var primaryAuthPromise;
+      this.settings.authPreSubmit(signInArgs)
+      .then(response => {
 
-      if (this.appState.get('isUnauthenticated')) {
-        var authClient = this.appState.settings.authClient;
-        // bootstrapped with stateToken
-        if (this.appState.get('isIdxStateToken')) {
-          // if its an idx stateToken, we send the parameter as identifier to login API
-          primaryAuthPromise = this.doTransaction(function (transaction) {
-            return this.doPrimaryAuth(authClient, signInArgs, transaction.login);
-          });
+        var primaryAuthPromise;
+  
+        if (this.appState.get('isUnauthenticated')) {
+          var authClient = this.appState.settings.authClient;
+          // bootstrapped with stateToken
+          if (this.appState.get('isIdxStateToken')) {
+            // if its an idx stateToken, we send the parameter as identifier to login API
+            primaryAuthPromise = this.doTransaction(function (transaction) {
+              return this.doPrimaryAuth(authClient, signInArgs, transaction.login);
+            });
+          } else {
+            primaryAuthPromise = this.doTransaction(function (transaction) {
+              return this.doPrimaryAuth(authClient, signInArgs, transaction.authenticate);
+            });
+          }
         } else {
-          primaryAuthPromise = this.doTransaction(function (transaction) {
-            return this.doPrimaryAuth(authClient, signInArgs, transaction.authenticate);
+          //normal username/password flow without stateToken
+          primaryAuthPromise = this.startTransaction(function (authClient) {
+            return this.doPrimaryAuth(authClient, signInArgs, _.bind(authClient.signIn, authClient));
           });
         }
-      } else {
-        //normal username/password flow without stateToken
-        primaryAuthPromise = this.startTransaction(function (authClient) {
-          return this.doPrimaryAuth(authClient, signInArgs, _.bind(authClient.signIn, authClient));
-        });
-      }
-
-      return primaryAuthPromise
-        .fail(_.bind(function () {
-          // Specific event handled by the Header for the case where the security image is not
-          // enabled and we want to show a spinner. (Triggered only here and handled only by Header).
-          this.appState.trigger('removeLoading');
-          CookieUtil.removeUsernameCookie();
-        }, this))
-        .fin(_.bind(function () {
-          this.appState.trigger('loading', false);
-        }, this));
+  
+        return primaryAuthPromise
+          .fail(_.bind(function () {
+            // Specific event handled by the Header for the case where the security image is not
+            // enabled and we want to show a spinner. (Triggered only here and handled only by Header).
+            this.appState.trigger('removeLoading');
+            CookieUtil.removeUsernameCookie();
+          }, this))
+          .fin(_.bind(function () {
+            this.appState.trigger('loading', false);
+          }, this));
+      })
+      .catch(err => {
+        
+      })
     },
 
     getSignInArgs: function (username) {

@@ -13,7 +13,11 @@ build2
 src/config/config.json
 packages/@okta/courage-dist/*.html
 packages/@okta/courage-dist/*.map
-/dist
+/dist/css
+/dist/font
+/dist/img
+/dist/sass
+/dist/labels
 .yalc
 .env
 packages/@okta/i18n/dist/json/
